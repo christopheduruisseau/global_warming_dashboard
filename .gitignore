@@ -1,2 +1,5 @@
 settings.json
 co-emissions-per-capita.csv
+methane-emissions.csv
+nitrous-oxide-emissions.csv
+ultimate_df.csv
