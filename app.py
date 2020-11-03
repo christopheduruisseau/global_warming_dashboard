@@ -9,7 +9,8 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 
-
+#Style definition 
+#region
 #Apply custom format to map figures
 def formatMap(fignb):
     #Define margin for figure layout so the chart can fill as much space as possible
@@ -23,28 +24,30 @@ def formatMap(fignb):
     fignb.layout.modebar.orientation='h'
 
     #Set the colorbar to the left side of the cart
-    fignb.layout.coloraxis.colorbar.x = -0.1
+    #fignb.layout.coloraxis.colorbar.len = 0.8
+    fignb.layout.coloraxis.colorbar.x = -0.2
     fignb.layout.coloraxis.colorbar.xanchor = 'left'
 
     #Set the position of updatemenus (play and stop buttons) 
     #One above the other (direction = 'up')
     #Last config allow to set the duration of animation
-    fignb.layout.updatemenus[0]['pad']={'t':-0.3}
-    fignb.layout.updatemenus[0].direction = 'up'
-    fignb.layout.updatemenus[0].x = -0.1
+    fignb.layout.updatemenus[0]['pad']={'t':-0.4}
+    #fignb.layout.updatemenus[0].direction = 'up'
+    fignb.layout.updatemenus[0].x = -0.18
     fignb.layout.updatemenus[0].xanchor = 'left'
     fignb.layout.updatemenus[0].buttons[0].args[1]["frame"]["duration"] = 5
 
     #Set the slider near the chart 
-    fignb.layout.sliders[0]['pad']={'t':-0.3}
+    #fignb.layout.sliders[0]['pad']={'t':-0.3}
+    fignb.layout.sliders[0]['pad']={'t':-0.2}
+    fignb.layout.sliders[0]['y'] = 0.08
     fignb.layout.sliders[0]['len']= 1
     fignb.layout.sliders[0].x = 0
 
 #Apply custom format to scatter figures
 def formatScatter(fignb):
      #Define margin for figure layout so the chart can fill as much space as possible
-    fignb.update_layout(margin=dict(l=0, r=0, t=0, b=0))
-
+    fignb.update_layout(margin=dict(l=0, r=0, t=0, b=0),legend=dict(yanchor="top",y=0.99, xanchor="left",x=0.01))
     #Define dims for layout
     fignb.layout.width=800
     fignb.layout.height=500
@@ -64,7 +67,7 @@ SIDEBAR_STYLE = {
 CONTENT_STYLE = {
     'margin-left': '18%',
     'margin-right': '5%',
-    'padding' : '10px 5px 15px 20px' 
+    'padding' : '10px 5px 15px 20px'
 }
 
 #The style for the text 
@@ -72,15 +75,38 @@ TEXT_STYLE = {
     'textAlign': 'left',
     'color': '#191970'
 }
+#endregion
 
+#Dataframes
+#region
 #Import local dataframe 
 ultimate_df = pd.read_csv('ultimate_df.csv')
 #New df which is part of ultimate_df
 world_df = ultimate_df.loc[ultimate_df['Country'] == 'World']
 
+
+# Slicing the df to remove the World value:
+df_count = ultimate_df[~(ultimate_df['Country'] == 'World')]
+# Creating list & dictionary to iterate over for value names and colors:
+GHG_list = ['Annual CO2 emissions', 'Methane', 'Nitrous_oxide', 'Total GHG']
+GHG_name = ['Carbone Dioxyde', 'Methane', 'Nitrous Oxyde', 'Total Greenhouse Gas']
+GHG_color = [px.colors.sequential.Blues, px.colors.sequential.Greens, px.colors.sequential.Oranges, px.colors.sequential.Reds]
+GHG_name_dict = dict(zip(GHG_list, GHG_name))
+GHG_color_dict = dict(zip(GHG_list, GHG_color))
+
+# Code for the correlation plots between temperature variation and Greenhouse Gas Emissions:
+# Slicing the df to avoid Nan values
+world_1990_df = world_df[world_df['Year']>1989]
+
+# Setting a dictionnary for the colors:
+GHG_disc_color = ['rgb(107,174,214)', 'rgb(116,196,118)', 'rgb(253,141,60)', 'rgb(165,15,21)']
+GHG_disc_color_dict = dict(zip(GHG_list, GHG_disc_color))
+#endregion
+
+#Figure 1
+#region
 # Code for the Figure:
 fig1 = go.Figure()
-
 #Add a line on the scatterplot
 fig1.add_trace(go.Scatter(x=world_df.Year, y=np.zeros(len(world_df.Year)),
                     mode='lines',
@@ -108,6 +134,10 @@ formatScatter(fig1)
 #change yaxe range
 fig1.update_yaxes(range=[-1, 1])
 
+#endregion
+
+#Figure 2
+#region
 #Create new mapplot
 fig2 = px.choropleth(ultimate_df, 
                     locations="Code", 
@@ -122,69 +152,95 @@ fig2 = px.choropleth(ultimate_df,
 #format it                   
 fig2.update_layout(margin={'r':0, 't':30, 'l':0, 'b':0}, coloraxis_colorbar=dict(title="Temperature Variation"))
 formatMap(fig2)
+#endregion
 
-
-# Slicing the df to remove the World value:
-df_count = ultimate_df[~(ultimate_df['Country'] == 'World')]
-# Creating list & dictionary to iterate over for value names and colors:
-GHG_list = ['Annual CO2 emissions', 'Methane', 'Nitrous_oxide', 'Total GHG']
-GHG_name = ['Carbone Dioxyde', 'Methane', 'Nitrous Oxyde', 'Total Greenhouse Gas']
-GHG_color = [px.colors.sequential.Blues, px.colors.sequential.Greens, px.colors.sequential.Oranges, px.colors.sequential.Reds]
-GHG_name_dict = dict(zip(GHG_list, GHG_name))
-GHG_color_dict = dict(zip(GHG_list, GHG_color))
-
-# Code for the correlation plots between temperature variation and Greenhouse Gas Emissions:
-# Slicing the df to avoid Nan values
-world_1990_df = world_df[world_df['Year']>1989]
-
-# Setting a dictionnary for the colors:
-GHG_disc_color = ['rgb(107,174,214)', 'rgb(116,196,118)', 'rgb(253,141,60)', 'rgb(165,15,21)']
-GHG_disc_color_dict = dict(zip(GHG_list, GHG_disc_color))
 
 #sidebar components, contains all the link of the
 #different paragraphs 
 controls = dbc.FormGroup(
     [
-        html.A('Worldwide temperatures',href='#card_title_1', style={
-            'textAlign': 'center'
-        }),
-        html.Br(),
-       html.A('Worldwide greenhouse gas emissions ',href='#card_title_1', style={
-            'textAlign': 'center'
-        }),
-        html.Br(),
-       html.A('Effect of global warming',href='#card_title_1', style={
-            'textAlign': 'center'
-        }),
-         html.Br(),
-       html.A('Predictions',href='#card_title_1', style={
-            'textAlign': 'center'
-        }),      
+        html.Ul(className="list-unstyled", children=
+        [
+            html.Li(
+                html.A('Part 1 : Global Warming',href='', style={'textAlign': 'center','text-decoration': 'underline','color': '#191970'}),
+            ),
+            html.Li(
+                html.A('Figure 1 : Global temperature variation from 1850 to 2015',href='',style={'font-size':'11px','color': '#191970'}),
+            ),
+            html.Li(
+                html.A('Figure 2. Worldwide temperature variations by country from 1850 to 2015.',href='',style={'font-size':'11px','color': '#191970'}),
+            ),
+            html.Br(),
+            html.Li(
+                html.A('Part 2: Impact of humans’ activities on global warming (Greenhouse Gas Emissions, Solar radiations) ',href='', style={'textAlign': 'center','text-decoration': 'underline','color': '#191970'}),
+            ),
+            html.Li(
+                html.A('Figure 4. Solar radiations vs. global temperature.',href='', style={'font-size':'11px','color': '#191970'})
+            ),
+            html.Li(
+                html.A('Figure 5. Global greenhouse gas emissions over time (CO2, CH4, N2O).',href='', style={'font-size':'11px','color': '#191970'})
+            ),
+            html.Li(
+                html.A('Figure 6. Greenhouse gas emissions by country.',href='', style={'font-size':'11px','color': '#191970'})
+            ),
+            html.Li(
+                html.A('Figure 7. Correlation between greenhouse gas emissions and temperature evolution.',href='', style={'font-size':'11px','color': '#191970'})
+            ),
+            html.Li(
+                html.A('Figure 8. CO2 emissions during COVID period',href='', style={'font-size':'11px','color': '#191970'})
+            ),
+            html.Br(),
+            html.Li(
+                html.A('Part 3: Impact of Global Warming on Life on Earth',href='', style={'textAlign': 'center','text-decoration': 'underline','color': '#191970'}),
+            ),
+            html.Li(
+                html.A('Figure 9. Make me melt',href='', style={'font-size':'11px','color': '#191970'})
+            ),
+            html.Li(
+                html.A('Figure 10. Impact on biodiversity (protected area)',href='', style={'font-size':'11px','color': '#191970'})
+            ),
+            html.Br(),
+             html.Li(
+                html.A('Part 4: Projections: Forecasting the evolution of variables in play in the years to come ',href='', style={'textAlign': 'center','text-decoration': 'underline','color': '#191970'}),
+            ),
+             html.Li(
+                html.A('Figure 11. Projected temperature evolution',href='', style={'font-size':'11px','color': '#191970'})
+            )
+        ]
+        ),
     ]
 )
 
 #Create the sidebar
 sidebar = html.Div( 
     [
-        html.H2('Sommaire', style=TEXT_STYLE),
+        html.H2('Index', style=TEXT_STYLE),
         html.Hr(),
         controls
     ],
     style=SIDEBAR_STYLE,
 )
 
+#Main content 
+#region
 #row 0 content : part title 
-content_zero_row = dbc.Row(align="center",justify="center",children=
+content_row_0 = dbc.Row(align="center",justify="center",children=
     [
         dbc.Col(width="auto", children=[
-            html.H4('Worldwide temperature')
+            html.H2('Is global warming a myth ?')
         ] 
         )
     ]
 )
 
+#row intro wordlwide temperature 
+intro_worldwide_temperature = dbc.Row([
+    html.H4('Worldwide temperature'),
+    html.Div()]
+)
+
 #row 1 content : txtarea (should be modified at the end)
-content_first_row = dbc.Row(align="right", children=
+content_row_1 = dbc.Row(align="right", children=
     [
         dbc.Col(align='left',children=[
             dcc.Graph(id='fig1',
@@ -194,19 +250,13 @@ content_first_row = dbc.Row(align="right", children=
             figure = fig1
             )],md=7),
         dbc.Col(
-            dbc.Textarea(
-            id='textarea-example',
-            value='Textarea content initialized\nwith multiple lines of text',
-            style={ 'width': '100%', 'min-height': '400px',
-                'box-sizing': 'border-box', 'border': 'none'},
-            ),md=5,
+            html.Div()
         ),  
     ]
 )
 
-
 #row 2 content : fig2 
-content_second_row = dbc.Row(
+content_row_2 = dbc.Row(
     [
       dbc.Col(align='left',children=[
             dcc.Graph(id='fig2',
@@ -221,7 +271,7 @@ content_second_row = dbc.Row(
 )
 
 #row 3 content : fig 6
-content_third_row = dbc.Row(
+content_row_3 = dbc.Row(
          dcc.Graph(id='fig6',
             config = {
             'modeBarButtonsToAdd' : ['drawline', 'drawopenpath', 'drawrect', 'eraseshape'],
@@ -230,7 +280,7 @@ content_third_row = dbc.Row(
 )
 
 #row 4 content : radio button for fig6
-content_fourth_row = dbc.Row(
+content_row_4 = dbc.Row(
    dcc.RadioItems(inputStyle={"margin-right": "10px","margin-left":"20px"},
                 id='crossfilter-yaxis-column',
                 options=[{'label': j, 'value': i} for i,j in GHG_name_dict.items()],
@@ -239,7 +289,7 @@ content_fourth_row = dbc.Row(
 )
 
 #row 5 content : fig7
-content_5_row = dbc.Row(
+content_row_5 = dbc.Row(
          dcc.Graph(id='fig7',
             config = {
             'modeBarButtonsToAdd' : ['drawline', 'drawopenpath', 'drawrect', 'eraseshape'],
@@ -248,7 +298,7 @@ content_5_row = dbc.Row(
 )
 
 #row 6 content : radio buttons for fig7
-content_6_row = dbc.Row(
+content_row_6 = dbc.Row(
    dcc.RadioItems(inputStyle={"margin-right": "10px","margin-left":"20px"},
                 id='crossfilter-yaxis-column2',
                 options=[{'label': j, 'value': i} for i,j in GHG_name_dict.items()],
@@ -256,29 +306,39 @@ content_6_row = dbc.Row(
             ) 
 )
 
-
 #Main content
 content = html.Div(
     [
-        html.H3('A data centered view on Global Warming', style=TEXT_STYLE),
+        html.H1('A data centered view on Global Warming', style=TEXT_STYLE),
         "by Valérie Didier, Esperence Moussa, Colin Verhille, Christophe Duruisseau",
+        html.Br(),
+        html.Br(),
+        html.Div(),
         html.Hr(),
-        content_zero_row,
+        content_row_0,
         html.Hr(),
-        content_first_row,
-        content_second_row,
-        content_fourth_row,
-        content_third_row,
-        content_5_row,
-        content_6_row
+        intro_worldwide_temperature,
+        html.Br(),
+        html.Br(),
+        content_row_1,
+        content_row_2,
+        content_row_4,
+        content_row_3,
+        content_row_5,
+        content_row_6
     ],
     style=CONTENT_STYLE
 )
+
+#endregion
 
 #use bootstrap stylesheet
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 #define page layout, which contains sidebar and content
 app.layout = html.Div([sidebar, content])
+
+#Callbacks
+#region
 
 #Callback for fig6
 @app.callback(
@@ -310,6 +370,8 @@ def update_graph1(col_value):
                    yaxis_title='Temperature Variation (degrees C)', 
                     plot_bgcolor='rgba(0,0,0,0.05)')
   return fig7
+
+#endregion
 
 #Run the server at port 8085
 #Accessible through : http://localhost:8085
