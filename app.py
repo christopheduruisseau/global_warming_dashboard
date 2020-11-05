@@ -36,7 +36,7 @@ def formatMap(fignb):
     #fignb.layout.updatemenus[0].direction = 'up'
     fignb.layout.updatemenus[0].x = -0.18
     fignb.layout.updatemenus[0].xanchor = 'left'
-    fignb.layout.updatemenus[0].buttons[0].args[1]["frame"]["duration"] = 5
+    fignb.layout.updatemenus[0].buttons[0].args[1]["frame"]["duration"] = 2
 
     #Set the slider near the chart 
     #fignb.layout.sliders[0]['pad']={'t':-0.3}
@@ -73,6 +73,7 @@ SIDEBAR_STYLE = {
 #The style arguments for the main content page.
 CONTENT_STYLE = {
     'margin-left': '18%',
+    #'margin-left': '5%',
     'margin-right': '5%',
     'padding' : '10px 5px 15px 20px'
 }
@@ -100,7 +101,7 @@ predictions_df = pd.read_csv('Future_temperature_predictions.csv')
 
 #endregion
 
-#region figure definitions except for those with callbacks  
+#region figure definitions 
 
 #region figure 1
 # Slicing the df to select only the World values:
@@ -146,13 +147,24 @@ formatMap(fig2)
 #endregion 
 
 #region figure 3a
+# Plotting temperature variations from 0 to nowdays:
+df_recent = paleo_df[paleo_df.Start>0]
+
+#pour utiliser les variations de l'utimate df, je calcule la valeur du premier point : la dernière valeur de df paleo - la premieère variation contemporaine
+premierpoint=df_recent.loc[df_recent.index.max(), "Temperature"]-world_df.loc[world_df.index.min(), "temperature_variations"]
+premierpoint
 # Plotting Global temperature from -21ka to 1850:
 fig3a = go.Figure()
 
 fig3a.add_trace(go.Scatter(x=paleo_df.End, y=paleo_df.Temperature,
                     mode='markers',
-                    #name='Global land temperature (TraCE-21ka simulation)',
-                    marker={'color':paleo_df.Temperature, 'colorscale':px.colors.cyclical.IceFire, 'size':13, 'cmid':0, 'cmin':-2, 'cmax':10},
+                    name='Global land temperature (TraCE-21ka simulation)',
+                    marker={'color':'grey', 'size':6, 'cmid':0, 'cmin':-2, 'cmax':10},
+                    hovertemplate="Year : %{x}<br>Temp : %{y}"))
+fig3a.add_trace(go.Scatter(x=world_df.Year, y=world_df.temperature_variations+premierpoint,
+                    mode='markers',
+                    name='Global land temperature (Berkeley Earth)',
+                    marker={'color':world_df.temperature_variations+premierpoint, 'colorscale':px.colors.cyclical.IceFire, 'size':6, 'cmid':0, 'cmin':-2, 'cmax':10},
                     hovertemplate="Year : %{x}<br>Temp : %{y}"))
 fig3a.update_layout(#title='Global temperature since -19 000 (TraCE-21ka simulation)',
                    xaxis_title='Years',
@@ -160,15 +172,18 @@ fig3a.update_layout(#title='Global temperature since -19 000 (TraCE-21ka simulat
                    plot_bgcolor='rgba(0,0,0,0.05)',
                    )
 formatScatter(fig3a)
+fig3a.layout.width=700
+fig3a.layout.height=400
+fig3a.layout.modebar.orientation='v'
 #endregion
 
 #region figure 3b
 # Plotting temperature variations from 0 to nowdays:
-df_recent = paleo_df[paleo_df.Start>0]
+#df_recent = paleo_df[paleo_df.Start>0]
 
 #pour utiliser les variations de l'utimate df, je calcule la valeur du premier point : la dernière valeur de df paleo - la premieère variation contemporaine
-premierpoint=df_recent.loc[df_recent.index.max(), "Temperature"]-world_df.loc[world_df.index.min(), "temperature_variations"]
-premierpoint
+#premierpoint=df_recent.loc[df_recent.index.max(), "Temperature"]-world_df.loc[world_df.index.min(), "temperature_variations"]
+#premierpoint
 
 fig3b = go.Figure()
 
@@ -193,6 +208,9 @@ fig3b.update_layout(#title='Global temperature since JC',
                    )
 
 formatScatter(fig3b)
+fig3b.layout.width=700
+fig3b.layout.height=400
+fig3b.layout.modebar.orientation='v'
 #endregion
 
 #region figure 4
@@ -319,6 +337,11 @@ fig9a.update_layout(#title='Variation of glaciers mass',
 fig9a.update_yaxes(title_text="Glaciers mass variation (compared to 1966)", secondary_y=False)
 
 formatScatter(fig9a)
+
+fig9a.layout.width=700
+fig9a.layout.height=400
+fig9a.layout.modebar.orientation='v'
+
 #endregion
 
 #region figure 9b
@@ -339,6 +362,10 @@ fig9b.update_layout(title='Variation of sea-level',
 fig9b.update_yaxes(title_text="Global sea_level variation (cm, compared to 1990)", secondary_y=False)
 
 formatScatter(fig9b)
+
+fig9b.layout.width=700
+fig9b.layout.height=400
+fig9b.layout.modebar.orientation = 'v'
 #endregion
 
 #region figure 10
@@ -355,7 +382,7 @@ fig10 = px.choropleth(df_count_2000,
                     range_color=[0,100] 
                     #title='Worldwide biodiversity evolution'
                     )
-fig10.update_layout(margin={'r':0, 't':30, 'l':0, 'b':0}, coloraxis_colorbar=dict(title="Temperature Variation"))
+fig10.update_layout(margin={'r':0, 't':30, 'l':0, 'b':0}, coloraxis_colorbar=dict(title="Share of important terrerstrial biodiversity sites that are protected"))
 formatMap(fig10)
 #endregion
 
@@ -397,49 +424,62 @@ controls = dbc.FormGroup(
         html.Ul(className="list-unstyled", children=
         [
             html.Li(
-                html.A('Part 1 - Global Warming',href='', style={'textAlign': 'center','text-decoration': 'underline','color': '#191970'}),
+                html.A('Part 1 - Global Warming',href='#part1', style={'textAlign': 'center','text-decoration': 'underline','color': '#191970'}),
             ),
             html.Li(
-                html.A('Figure 1 : Global temperature variation from 1850 to 2015',href='',style={'font-size':'11px','color': '#191970'}),
+                html.A('Fig 1. Global temperature : Deviation from the mean',href='#title_graph_1',style={'font-size':'11px','color': '#191970'}),
             ),
             html.Li(
-                html.A('Figure 2. Worldwide temperature variations by country from 1850 to 2015.',href='',style={'font-size':'11px','color': '#191970'}),
-            ),
-            html.Br(),
-            html.Li(
-                html.A('Part 2 - Impact of humans’ activities on global warming (Greenhouse Gas Emissions, Solar radiations) ',href='', style={'textAlign': 'center','text-decoration': 'underline','color': '#191970'}),
+                html.A('Fig 2. Worldwide temperatures variations',href='#title_graph_2',style={'font-size':'11px','color': '#191970'}),
             ),
             html.Li(
-                html.A('Figure 4. Solar radiations vs. global temperature.',href='', style={'font-size':'11px','color': '#191970'})
+                html.A('Fig 3a. Global temperature since -19 000 (TraCE-21ka simulation)',href='#title_graph_3a',style={'font-size':'11px','color': '#191970'}),
             ),
             html.Li(
-                html.A('Figure 5. Global greenhouse gas emissions over time (CO2, CH4, N2O).',href='', style={'font-size':'11px','color': '#191970'})
-            ),
-            html.Li(
-                html.A('Figure 6. Greenhouse gas emissions by country.',href='', style={'font-size':'11px','color': '#191970'})
-            ),
-            html.Li(
-                html.A('Figure 7. Correlation between greenhouse gas emissions and temperature evolution.',href='', style={'font-size':'11px','color': '#191970'})
-            ),
-            html.Li(
-                html.A('Figure 8. CO2 emissions during COVID period',href='', style={'font-size':'11px','color': '#191970'})
+                html.A('Fig 3b. Global temperature since JC',href='#title_graph_3b',style={'font-size':'11px','color': '#191970'}),
             ),
             html.Br(),
             html.Li(
-                html.A('Part 3 - Impact of Global Warming on Life on Earth',href='', style={'textAlign': 'center','text-decoration': 'underline','color': '#191970'}),
+                html.A('Part 2 - Impact of humans’ activities on global warming',href='#part2', style={'textAlign': 'center','text-decoration': 'underline','color': '#191970'}),
             ),
             html.Li(
-                html.A('Figure 9. Make me melt',href='', style={'font-size':'11px','color': '#191970'})
+                html.A('Fig 4. Temperature variations compared to solar activity variation (deviation from period 1961-1990)',href='#title_graph_4', style={'font-size':'11px','color': '#191970'})
             ),
             html.Li(
-                html.A('Figure 10. Impact on biodiversity (protected area)',href='', style={'font-size':'11px','color': '#191970'})
+                html.A('Fig 5. Global Greenhouse Gas Emissions',href='#title_graph_5', style={'font-size':'11px','color': '#191970'})
+            ),
+            html.Li(
+                html.A('Fig 6. Worldwide Carbone Dioxide emissions (tonnes of CO2 equivalent)',href='#title_graph_6', style={'font-size':'11px','color': '#191970'})
+            ),
+            html.Li(
+                html.A('Fig 7. Correlation between Temperature variation and Carbone Dioxide emissions',href='#title_graph_7', style={'font-size':'11px','color': '#191970'})
+            ),
+            html.Li(
+                html.A('Fig 8. CO2 emissions during COVID period (%)',href='#title_graph_8', style={'font-size':'11px','color': '#191970'})
+            ),
+            html.Br(),
+            html.Li(
+                html.A('Part 3 - Impact of Global Warming on Life on Earth',href='#part3', style={'textAlign': 'center','text-decoration': 'underline','color': '#191970'}),
+            ),
+            html.Li(
+                html.A('Figure 9a. Glaciers mass variation (compared to 1966)',href='#title_graph_9a', style={'font-size':'11px','color': '#191970'})
+            ),
+            html.Li(
+                html.A('Figure 9b. Global sea level variation (cm, compared to 1990)',href='#title_graph_9b', style={'font-size':'11px','color': '#191970'})
+            ),
+            html.Li(
+                html.A('Fig 10. Worldwide biodiversity evolution',href='#title_graph_10', style={'font-size':'11px','color': '#191970'})
             ),
             html.Br(),
              html.Li(
-                html.A('Part 4 - Projections: Forecasting the evolution of variables in play in the years to come ',href='', style={'textAlign': 'center','text-decoration': 'underline','color': '#191970'}),
+                html.A('Part 4 - Projections: Forecasting the evolution of variables in play in the years to come ',href='#part4', style={'textAlign': 'center','text-decoration': 'underline','color': '#191970'}),
             ),
              html.Li(
-                html.A('Figure 11. Projected temperature evolution',href='', style={'font-size':'11px','color': '#191970'})
+                html.A('Fig 11. Projected temperature evolution', href='#title_graph_11', style={'font-size':'11px','color': '#191970'})
+            ),
+            html.Br(),
+             html.Li(
+                html.A('Conclusion',href='#conclusion', style={'textAlign': 'center','text-decoration': 'underline','color': '#191970'}),
             )
         ]
         ),
@@ -463,7 +503,7 @@ sidebar = html.Div(
 main_title = html.Div(
     [ 
         html.H1('A data centered view on Global Warming', style=TEXT_STYLE),
-        "by Valérie Didier, Esperence Moussa, Colin Verhille, Christophe Duruisseau © TV-Freedom",
+        "by Christophe Duruisseau, Esperence Moussa, Colin Verhille, Valérie Vingtdeux © TV-Freedom",
     ]
 )
 
@@ -471,19 +511,21 @@ introduction = dbc.Row([
     tc_introduction
 ])
 
+#region part1
 #part1 title 
 part1_title = dbc.Row(align="center",justify="center",children=
     [
         dbc.Col(width="auto", children=[
-        html.H2('Part 1 - Global warming')
+        html.H2(id='part1',children=['Part 1 - Global warming'])
         ] 
         )
     ]
 )
 
+#region fig1
 #fig1 title 
 fig1_title = dbc.Row([
-    html.H4(tc_title_fig1),
+    html.H4(id='title_graph_1',children=[tc_title_fig1]),
     html.Div()]
 )
 
@@ -493,23 +535,24 @@ fig1_txt1 = dbc.Row(align="right", children=
         dbc.Col(align='left',children=[
             dcc.Graph(id='graph_1',
             config = {
-            'displayModeBar' : True
+            'displayModeBar' : False
                     },
             figure = fig1
             )],md=7),
         dbc.Col(
-            html.Div('''As defined by IPCC, climate in a narrow sense that is usually defined as the average weather, or more rigorously, as the statistical description in terms of the mean and variability of relevant quantities over a period of time ranging from months to thousands or millions of years. The relevant quantities are most often surface variables such as temperature, precipitation and wind. The history of climate change science began in the early 19th when the natural greenhouse effect was discovered by the french physicist Jospeh Fourier. During the 1990s, the increase of technology allowed to develop better models, then a consensus began to form : greenhouse gases were deeply involved in most climate changes and human-caused emissions were bringing discernible global warming. Since then, researchs was continued and the question of climate change and it's impact in short term on the environment is more and more at the hearts of today. Public opinion is also divided on this question and we'll try to provide answers on somes questions below in this document.''')
+            html.Div(tc_txt1)
         ,md=5),  
         dbc.Row(
-            html.Div('''As defined by IPCC, climate in a narrow sense that is usually defined as the average weather, or more rigorously, as the statistical description in terms of the mean and variability of relevant quantities over a period of time ranging from months
-to thousands or millions of years. The relevant quantities are most often surface variables such as temperature, precipitation and wind.''')
+            html.Div()
         )
     ]
 )
+#endregion
 
+#region fig2
 #fig2 title 
 fig2_title = dbc.Row([
-    html.H4('Worldwide temperature'),
+    html.H4(id='title_graph_2',children=[tc_title_fig2]),
     html.Div()]
 )
 
@@ -524,17 +567,48 @@ fig2_txt2 = dbc.Row(align="right", children=
             figure = fig2
             )],md=7),
         dbc.Col(
-            html.Div()
+            html.Div(tc_txt2)
         ,md=5),  
         dbc.Row(
             html.Div()
         )
     ]
 )
+#endregion
 
+#region txt3
+txt_3 = dbc.Row(align='left',children=[
+    html.Div(tc_txt3a)
+    ])    
+#endregion
+
+#region fig3a-3b
+test_fig3 = dbc.Row(align="right",children=
+[
+    dbc.Col(align='left',children=[
+        html.H4(id='title_graph_3a',children=[tc_title_fig3a]),
+        dcc.Graph(id='graph_3a',
+        config = {'displayModeBar' : False,
+            },
+        figure = fig3a
+        )]
+    ),
+    dbc.Col(align='right',children=[
+        html.H4(id='title_graph_3b',children=[tc_title_fig3b]),
+        dcc.Graph(id='graph_3b',
+        config = {'displayModeBar' : False},
+        figure = fig3b
+        )]
+    )
+
+])
+
+#endregion
+
+#region fig3
 #fig3a title 
 fig3a_title = dbc.Row([
-    html.H4('Worldwide temperature'),
+    html.H4(tc_title_fig3a),
     html.Div()]
 )
 
@@ -549,7 +623,7 @@ fig3a_txt3a = dbc.Row(align="right", children=
             figure = fig3a
             )],md=7),
         dbc.Col(
-            html.Div()
+            html.Div(tc_txt3a)
         ,md=5),  
         dbc.Row(
             html.Div()
@@ -559,7 +633,7 @@ fig3a_txt3a = dbc.Row(align="right", children=
 
 #fig3b title 
 fig3b_title = dbc.Row([
-    html.H4('Worldwide temperature'),
+    html.H4(tc_title_fig3b),
     html.Div()]
 )
 
@@ -581,19 +655,23 @@ fig3b_txt3b = dbc.Row(align="right", children=
         )
     ]
 )
+#endregion
+#endregion
 
+#region part2 
 part2_title = dbc.Row(align="center",justify="center",children=
     [
         dbc.Col(width="auto", children=[
-        html.H2('Part 2 - Impact of humans’ activities on global warming')
+        html.H2(id='part2',children=['Part 2 - Impact of humans’ activities on global warming'])
         ] 
         )
     ]
 )
 
+#region fig4
 #fig4 title 
 fig4_title = dbc.Row([
-    html.H4('Worldwide temperature'),
+    html.H4(id='title_graph_4',children=[tc_title_fig4]),
     html.Div()]
 )
 
@@ -603,47 +681,50 @@ fig4_txt4 = dbc.Row(align="right", children=
         dbc.Col(align='left',children=[
             dcc.Graph(id='graph_4',
             config = {
-            'displayModeBar' : True
+            'displayModeBar' : False
                     },
             figure = fig4
             )],md=7),
         dbc.Col(
-            html.Div()
+            html.Div(tc_txt4)
         ,md=5),  
         dbc.Row(
             html.Div()
         )
     ]
 )
+#endregion
 
+#region fig5
 #fig5 title 
 fig5_title = dbc.Row([
-    html.H4('Worldwide temperature'),
+    html.H4(id='title_graph_5',children=[tc_title_fig5]),
     html.Div()]
 )
-
 #row fig5-txt5 content : 
 fig5_txt5 = dbc.Row(align="right", children=
     [
         dbc.Col(align='left',children=[
             dcc.Graph(id='graph_5',
             config = {
-            'displayModeBar' : True
+            'displayModeBar' : False
                     },
             figure = fig5
             )],md=7),
         dbc.Col(
-            html.Div()
+            html.Div(tc_txt5)
         ,md=5),  
         dbc.Row(
             html.Div()
         )
     ]
 )
+#endregion
 
+#region fig6
 #fig6 title 
 fig6_title = dbc.Row([
-    html.H4('Worldwide temperature'),
+    html.H4(id='title_graph_6',children=[tc_title_fig6]),
     html.Div()]
 )
 
@@ -657,7 +738,7 @@ fig6_txt6 = dbc.Row(align="right", children=
                     }
             )],md=7),
         dbc.Col(
-            html.Div()
+            html.Div(tc_txt6)
         ,md=5),  
         html.Div(
            #row 4 content : radio button for fig6
@@ -670,10 +751,12 @@ fig6_txt6 = dbc.Row(align="right", children=
         )
     ]
 )
+#endregion
 
+#region fig7
 #fig7 title 
 fig7_title = dbc.Row([
-    html.H4('Worldwide temperature'),
+    html.H4(id='title_graph_7',children=[tc_title_fig7]),
     html.Div()]
 )
 
@@ -683,11 +766,11 @@ fig7_txt7 = dbc.Row(align="right", children=
         dbc.Col(align='left',children=[
             dcc.Graph(id='graph_7',
             config = {
-            'displayModeBar' : True
+            'displayModeBar' : False
                     }
             )],md=7),
         dbc.Col(
-            html.Div()
+            html.Div(tc_txt7)
         ,md=5),  
     
         #row 4 content : radio button for fig6
@@ -702,10 +785,12 @@ fig7_txt7 = dbc.Row(align="right", children=
        
     ]
 )
+#endregion
 
-#fig6 title 
+#region fig 8 
+#fig8 title 
 fig8_title = dbc.Row([
-    html.H4('Worldwide temperature'),
+    html.H4(id='title_graph_8',children=[tc_title_fig8]),
     html.Div()]
 )
 
@@ -720,26 +805,62 @@ fig8_txt8 = dbc.Row(align="right", children=
             figure = fig8
             )],md=7),
         dbc.Col(
-            html.Div()
+            html.Div(tc_txt8)
         ,md=5),  
         dbc.Row(
             html.Div()
         )
     ]
 )
+#endregion
 
+#endregion
+
+#region part3
 part3_title = dbc.Row(align="center",justify="center",children=
     [
         dbc.Col(width="auto", children=[
-        html.H2('Part 3 - Impact of Global Warming on Life on Earth')
+        html.H2(id='part3',children=['Part 3 - Impact of Global Warming on Life on Earth'])
         ] 
         )
     ]
 )
 
+#region txt_9
+txt_9 = dbc.Row(align='left',children=[
+    tc_txt9,
+    html.Br(),
+    html.Br()
+    ])    
+
+#endregion
+
+#region fig9a-fig9b
+test_fig9 = dbc.Row(align="right",children=
+[
+    dbc.Col(align='left',children=[
+        html.H4(id='title_graph_9a',children=[tc_title_fig9a]),
+        dcc.Graph(id='graph_9a',
+        config = {'displayModeBar' : True,
+            },
+        figure = fig9a
+        )]
+    ),
+    dbc.Col(align='right',children=[
+        html.H4(id='title_graph_9b',children=[tc_title_fig9b]),
+        dcc.Graph(id='graph_9b',
+        config = {'displayModeBar' : True},
+        figure = fig9b
+        )]
+    )
+
+])
+#endregion
+
+#region fig9
 #fig9a title 
 fig9a_title = dbc.Row([
-    html.H4('Worldwide temperature'),
+    html.H4(tc_title_fig9a),
     html.Div()]
 )
 
@@ -754,7 +875,7 @@ fig9a_txt9a = dbc.Row(align="right", children=
             figure = fig9a
             )],md=7),
         dbc.Col(
-            html.Div()
+            html.Div(tc_txt9)
         ,md=5),  
         dbc.Row(
             html.Div()
@@ -762,13 +883,14 @@ fig9a_txt9a = dbc.Row(align="right", children=
     ]
 )
 
+
 #fig9b title 
 fig9b_title = dbc.Row([
-    html.H4('Worldwide temperature'),
+    html.H4(tc_title_fig9b),
     html.Div()]
 )
 
-#row fig9a-txt9a content : 
+#row fig9b-txt9b content : 
 fig9b_txt9b = dbc.Row(align="right", children=
     [
         dbc.Col(align='left',children=[
@@ -786,14 +908,16 @@ fig9b_txt9b = dbc.Row(align="right", children=
         )
     ]
 )
+#endregion
 
+#region fig10
 #fig10 title 
 fig10_title = dbc.Row([
-    html.H4('Worldwide temperature'),
+    html.H4(id='title_graph_10',children=[tc_title_fig10]),
     html.Div()]
 )
 
-#row fig9a-txt9a content : 
+#row fig10-txt10 content : 
 fig10_txt10 = dbc.Row(align="right", children=
     [
         dbc.Col(align='left',children=[
@@ -804,27 +928,33 @@ fig10_txt10 = dbc.Row(align="right", children=
             figure = fig10
             )],md=7),
         dbc.Col(
-            html.Div()
+            html.Div(tc_txt10)
         ,md=5),  
         dbc.Row(
             html.Div()
         )
     ]
 )
+#endregion
+#endregion
 
+#region part4
 part4_title = dbc.Row(align="center",justify="center",children=
     [
         dbc.Col(width="auto", children=[
-        html.H2('Part 4 - Projections : Forecasting the evolution of variables in play in the years to come ')
+        html.H2(id='part4',children=['Part 4 - Projections : Forecasting the evolution of variables in play in the years to come '])
         ] 
         )
     ]
 )
 
-#fig9b title 
+#region fig11
+#fig11 title 
 fig11_title = dbc.Row([
-    html.H4('Worldwide temperature'),
-    html.Div()]
+    tc_txt11,
+    html.Br(),
+    html.Br(),
+    html.H4(id='title_graph_11',children=[tc_title_fig11])]
 )
 
 #row fig11-txt11 content : 
@@ -833,23 +963,26 @@ fig11_txt11 = dbc.Row(align="right", children=
         dbc.Col(align='left',children=[
             dcc.Graph(id='graph_11',
             config = {
-            'displayModeBar' : True
+            'displayModeBar' : False
                     },
             figure = fig11
             )],md=7),
         dbc.Col(
-            html.Div()
+            html.Div(tc_txt11_list)
         ,md=5),  
         dbc.Row(
             html.Div()
         )
     ]
 )
+#endregion
+#endregion
 
+#region conclusion and sources
 conclusion_title = dbc.Row(align="center",justify="center",children=
     [
         dbc.Col(width="auto", children=[
-        html.H2('Conclusion')
+        html.H2(id='conclusion',children=['Conclusion'])
         ] 
         )
     ]
@@ -857,9 +990,11 @@ conclusion_title = dbc.Row(align="center",justify="center",children=
 
 conclusion = dbc.Row(align="center",justify="center",children=
     [   
-        html.Div()
+        html.Div(tc_conclusion)
     ]
 )
+
+#endregion
 
 #Main content
 content = html.Div(
@@ -867,62 +1002,94 @@ content = html.Div(
         main_title,
         html.Br(),
         introduction,
+        html.Br(),
+        html.Br(),
         html.Hr(),
         part1_title,
         html.Hr(),
+        html.Br(),
+        html.Br(),
         fig1_title,
         fig1_txt1,
+        html.Br(),
         html.Br(),
         fig2_title,
         fig2_txt2,
         html.Br(),
         html.Br(),
-        fig3a_title,
-        fig3a_txt3a,
-        fig3b_title,
-        fig3b_txt3b,
+        txt_3,
+        html.Br(),
+        html.Br(),
+        test_fig3,
+        #fig3a_title,
+        #fig3a_txt3a,
+        #fig3b_title,
+        #fig3b_txt3b,
+        html.Br(),
+        html.Br(),
         html.Hr(),
         part2_title,
         html.Hr(),
+        html.Br(),
+        html.Br(),
         fig4_title,
         fig4_txt4,
+        html.Br(),
         fig5_title,
         fig5_txt5,
+        html.Br(),
         fig6_title,
         fig6_txt6,
+        html.Br(),
         fig7_title,
         fig7_txt7,
+        html.Br(),
         fig8_title,
         fig8_txt8,
-          html.Hr(),
+        html.Br(),
+        html.Br(),
+        html.Hr(),
         part3_title,
         html.Hr(),
-        fig9a_title,
-        fig9a_txt9a,
-        fig9b_title,
-        fig9b_txt9b,
+        html.Br(),
+        html.Br(),
+        txt_9,
+        test_fig9,
+        html.Br(),
+        html.Br(),
+        #fig9a_title,
+        #fig9a_txt9a,
+        #fig9b_title,
+        #fig9b_txt9b,
         fig10_title,
         fig10_txt10,
+        html.Br(),
+        html.Br(),
         html.Hr(),
         part4_title,
         html.Hr(),
+        html.Br(),
+        html.Br(),
         fig11_title,
         fig11_txt11,
+        html.Br(),
+        html.Br(),
         html.Hr(),
         conclusion_title,
         html.Hr(),
+        html.Br(),
+        html.Br(),
         conclusion
     ],
     style=CONTENT_STYLE
 )
-
 #endregion
 
 #use bootstrap stylesheet
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 #define page layout, which contains sidebar and content
 app.layout = html.Div([sidebar, content])
-
+#app.layout = html.Div([content])
 #region callbacks
 
 # Code for the clorepleth maps for Worldwide Greenhouse Gas Emissions:
@@ -936,8 +1103,8 @@ def update_graph_6(col_value):
                     hover_name="Country", 
                     color_continuous_scale=GHG_color_dict[col_value],
                     animation_frame="Year", 
-                    range_color=[df_count_1990[col_value].min(),df_count_1990[col_value].max()], 
-                    title=f'Worldwide {GHG_cat_name_dict[col_value]} emissions (tonnes of CO2 equivalent)'
+                    range_color=[df_count_1990[col_value].min(),df_count_1990[col_value].max()]
+                    #title=f'Worldwide {GHG_cat_name_dict[col_value]} emissions (tonnes of CO2 equivalent)'
                     )
   fig6.update_layout(margin={'r':0, 't':30, 'l':0, 'b':0}, coloraxis_colorbar=dict(title=f"{GHG_cat_name_dict[col_value]} emissions"))
   fig6.layout.coloraxis.colorbar = dict(
@@ -952,6 +1119,12 @@ def update_graph_6(col_value):
   formatMap(fig6)
   return fig6
 
+#Callback for title graph 6
+@app.callback(
+    Output('title_graph6', 'children'),
+    [Input('radio_button_fig6', 'value')])
+def update_title6(col_value):
+  return "Fig 6. Worldwide " + GHG_cat_name_dict[col_value] + " emissions (tonnes of CO2 equivalent)"
 
 #Callback for fig7
 @app.callback(
@@ -966,6 +1139,14 @@ def update_graph(col_value):
                    plot_bgcolor='rgba(0,0,0,0.05)')
   formatScatter(fig7)
   return fig7
+
+#Callback for title graph 6
+@app.callback(
+    Output('title_graph7', 'children'),
+    [Input('radio_button_fig7', 'value')])
+def update_title7(col_value):
+  return "Fig 7. Correlation between Temperature variation and " + GHG_name_dict[col_value] + " emissions"
+
 
 #endregion
 
