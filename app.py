@@ -497,7 +497,7 @@ sidebar = html.Div(
 )
 #endregion
 
-#region main content
+#region main content784
 
 #Main title
 main_title = html.Div(
@@ -954,7 +954,8 @@ fig11_title = dbc.Row([
     tc_txt11,
     html.Br(),
     html.Br(),
-    html.H4(id='title_graph_11',children=[tc_title_fig11])]
+    html.Br(),
+    html.H4(id='title_graph_11',children=[html.Br(),tc_title_fig11])]
 )
 
 #row fig11-txt11 content : 
@@ -1054,6 +1055,7 @@ content = html.Div(
         html.Br(),
         html.Br(),
         txt_9,
+        html.Br(),
         test_fig9,
         html.Br(),
         html.Br(),
@@ -1121,7 +1123,7 @@ def update_graph_6(col_value):
 
 #Callback for title graph 6
 @app.callback(
-    Output('title_graph6', 'children'),
+    Output('title_graph_6', 'children'),
     [Input('radio_button_fig6', 'value')])
 def update_title6(col_value):
   return "Fig 6. Worldwide " + GHG_cat_name_dict[col_value] + " emissions (tonnes of CO2 equivalent)"
@@ -1142,7 +1144,7 @@ def update_graph(col_value):
 
 #Callback for title graph 6
 @app.callback(
-    Output('title_graph7', 'children'),
+    Output('title_graph_7', 'children'),
     [Input('radio_button_fig7', 'value')])
 def update_title7(col_value):
   return "Fig 7. Correlation between Temperature variation and " + GHG_name_dict[col_value] + " emissions"
