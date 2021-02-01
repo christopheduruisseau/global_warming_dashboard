@@ -1,9 +1,16 @@
-# global_warming_dashboard
+# Global_warming_dashboard
 
-Source code for the dashboard. 
-        To run this dashboard, please intall these python librairies :
-            - dash
-            - dash_bootstrap_components
-            - dash_core_components
-            - dash_html_components
-        
+For our project 2 in Wild Code School, we made a simple dashboard with Dash Plotly to 
+show our work on Global Warming.<br/>
+
+Requirements:
+    * dash
+    * pandas
+    * numpy
+    * plotly
+
+To use clone the production branch, install requirements, run the following terminal commands:
+
+    $ pip install -r requirements.txt
+    $ python app.py
+    
