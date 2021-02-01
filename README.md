@@ -5,6 +5,7 @@ show our work on Global Warming.<br/>
 
 Requirements:   
     - Dash   
+    - Dash Bootstrap Components   
     - Pandas   
     - Numpy   
     - Plotly   
